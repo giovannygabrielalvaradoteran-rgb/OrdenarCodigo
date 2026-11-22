@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="es"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwOTU3Mzc1MzI3NTY2OTAyMTcxMSIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2VlNzMxNTk2YWRkNzU4ZDRfb3JkZW5hcl9jb2RpZ29fZXNwMzIuaHRtbC05NjYifSwiZXhwIjoxNzk1MzU4OTk4LCJpYXQiOjE3OTUzNTUzOTgsImFsZyI6IlJTMjU2In0.FJCM6FQjbhPxeS1NGkYyemmz903glWbzhCmgO-wtJ1DvKzPrmAlNXrncNwBnazYYUzla85jH5PRVoyX3y9axN7wsOvPjdHCQCy-DkscCBcYUuUxSZeh_5_SSde6EYOXbHkTZ385onp2KpqpV2tcsw21kGeCZmjehZ3USwODeVlWeIjTl9FWXHZPMGL71VSb0rYZGu5dLL7QshAoKkoaeLdUSgN_aa7sndZi5Ch3DUSHbGtz_KdDyITc0qJ0cPhIngUppvH3Cz7nEpUUoGywtDnv1-t9APZ2jHKnu7zDwbTE5U3bK_Ao3-9-yJn0dB9nlJBuKBvOpt8RmnXvhm8UChA","c_ee731596add758d4_ordenar_codigo_esp32.html-966")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.i=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.extensions="";var l=0,t=null,r=null,q=[],F=new TextEncoder,
+G=new TextDecoder;c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*
+16|0;return(f==="x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;
+(g=t)==null||g.postMessage(a)}};Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function() {
+  const OVERLAY_SELECTOR =
+    'dialog[open], [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="combobox"]';
+
+  function isVisibleOverlay(element) {
+    if (element.closest('[hidden], [aria-hidden="true"], [inert]')) {
+      return false;
+    }
+    if (window.getComputedStyle(element).visibility === 'hidden') {
+      return false;
+    }
+    for (let cur = element; cur; cur = cur.parentElement) {
+      if (window.getComputedStyle(cur).display === 'none') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function hasOpenOverlay() {
+    const candidates = document.querySelectorAll(OVERLAY_SELECTOR);
+    for (let i = 0; i < candidates.length; i++) {
+      if (isVisibleOverlay(candidates[i])) {
+        return true;
+      }
+    }
+    try {
+      if (document.querySelector('[popover]:popover-open')) {
+        return true;
+      }
+    } catch (e) {
+      // Ignore engines that do not support :popover-open.
+    }
+    return false;
+  }
+
+  function isNonEmptySearchInput(target) {
+    return (
+      Boolean(target) &&
+      target.tagName === 'INPUT' &&
+      typeof target.type === 'string' &&
+      target.type.toLowerCase() === 'search' &&
+      typeof target.value === 'string' &&
+      target.value.length > 0
+    );
+  }
+
+  function shouldIgnoreEscape(event) {
+    return (
+      event.key !== 'Escape' ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.isComposing ||
+      event.repeat ||
+      event.keyCode === 229 ||
+      isNonEmptySearchInput(event.target)
+    );
+  }
+
+  let shouldIgnoreCaptureState = false;
+
+  window.addEventListener(
+    'keydown',
+    function(event) {
+      if (event.key === 'Escape') {
+        shouldIgnoreCaptureState =
+          hasOpenOverlay() || isNonEmptySearchInput(event.target);
+      }
+    },
+    {capture: true},
+  );
+
+  window.addEventListener('keydown', function(event) {
+    if (
+      shouldIgnoreEscape(event) ||
+      event.defaultPrevented ||
+      shouldIgnoreCaptureState
+    ) {
+      return;
+    }
+    const wasBlockedOnCapture = shouldIgnoreCaptureState;
+    queueMicrotask(function() {
+      if (event.defaultPrevented || wasBlockedOnCapture) {
+        return;
+      }
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({'type': 'escapeKey'}, '*');
+      }
+    });
+  });
+})();</script><script data-bard-client-injected="true">(function() {
+  function normalizeSlug(str) {
+    try {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^p{L}p{N}s_-]/gu, '')
+        .replace(/s+/g, '-');
+    } catch (e) {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9s_-]/g, '')
+        .replace(/s+/g, '-');
+    }
+  }
+
+  function findTargetElement(hash) {
+    if (!hash || hash === '#') {
+      return null;
+    }
+    const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+    let decodedId = rawId;
+    try {
+      decodedId = decodeURIComponent(rawId);
+    } catch (e) {
+      // Ignore URI malformed errors.
+    }
+
+    // 1. Direct ID match (raw and decoded).
+    let target = document.getElementById(rawId) || document.getElementById(decodedId);
+    if (target) {
+      return target;
+    }
+
+    // 2. Name attribute match (<a name="...">).
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) {
+        target =
+          document.querySelector('[name="' + CSS.escape(rawId) + '"]') ||
+          document.querySelector('[name="' + CSS.escape(decodedId) + '"]');
+      } else {
+        const namedElements = document.getElementsByName(rawId);
+        if (namedElements && namedElements.length > 0) {
+          return namedElements[0];
+        }
+      }
+    } catch (e) {
+      // Ignore querySelector syntax errors.
+    }
+    if (target) {
+      return target;
+    }
+
+    // 3. Match heading text by slug (for Markdown TOCs where headings lack explicit IDs).
+    const targetSlug = normalizeSlug(decodedId);
+    if (targetSlug) {
+      for (const heading of document.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (normalizeSlug(heading.textContent || '') === targetSlug) {
+          return heading;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target;
+    const anchor = target && typeof target.closest === 'function' ? target.closest('a') : null;
+    if (!anchor) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (
+      !href ||
+      href.trim().toLowerCase().startsWith('javascript:') ||
+      anchor.hasAttribute('download')
+    ) {
+      return;
+    }
+
+    // Check if the link is an in-page hash / anchor link.
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const targetElement = findTargetElement(href);
+      if (targetElement) {
+        targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+      return;
+    }
+
+    // Check if the URL has the same origin/pathname but with a hash.
+    try {
+      const url = new URL(anchor.href, window.location.href);
+      if (
+        url.hash &&
+        url.origin === window.location.origin &&
+        url.pathname === window.location.pathname
+      ) {
+        event.preventDefault();
+        const targetElement = findTargetElement(url.hash);
+        if (targetElement) {
+          targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        return;
+      }
+    } catch (e) {
+      // Fall through if URL parsing fails.
+    }
+
+    // For all external or full navigation links, prevent iframe-level navigation
+    // (which breaks in AGSA WebView or sandboxed iframes) and ensure they open
+    // safely in a new tab/window.
+    if (anchor.target !== '_blank') {
+      event.preventDefault();
+      window.open(anchor.href, '_blank', 'noopener,noreferrer');
+    }
+  }, {capture: true});
+})();</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ordena el Código del Auto Bluetooth (ESP32 + L298N)</title>
+  <!-- Tailwind CSS para diseño moderno y responsivo -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Fuentes de Google: Inter para UI y JetBrains Mono para bloques de código -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .code-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Estilos personalizados para la experiencia Drag & Drop */
+    .code-block {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.2s ease, background-color 0.2s ease;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .code-block:hover {
+      transform: translateY(-2px);
+    }
+    .code-block.dragging {
+      opacity: 0.45;
+      transform: scale(0.98);
+      border-style: dashed;
+    }
+    .drop-zone {
+      min-height: 440px;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    .drop-zone.drag-over {
+      background-color: #e0f2fe;
+      border-color: #0284c7;
+    }
+    /* Barra de desplazamiento sutil dentro de bloques largos */
+    pre::-webkit-scrollbar {
+      height: 6px;
+    }
+    pre::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 3px;
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.relative{position:relative}.bottom-5{bottom:1.25rem}.right-5{right:1.25rem}.z-50{z-index:50}.mx-4{margin-left:1rem;margin-right:1rem}.mx-auto{margin-left:auto;margin-right:auto}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-1\.5{margin-top:0.375rem}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-12{height:3rem}.h-3{height:0.75rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-7{height:1.75rem}.h-full{height:100%}.h-3\.5{height:0.875rem}.min-h-\[380px\]{min-height:380px}.w-12{width:3rem}.w-3{width:0.75rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-7{width:1.75rem}.w-full{width:100%}.w-3\.5{width:0.875rem}.max-w-3xl{max-width:48rem}.max-w-7xl{max-width:80rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.cursor-pointer{cursor:pointer}.cursor-grab{cursor:grab}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-1{gap:0.25rem}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.self-start{align-self:flex-start}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-sm{border-radius:0.125rem}.rounded-xl{border-radius:0.75rem}.rounded{border-radius:0.25rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-dashed{border-style:dashed}.border-indigo-300{--tw-border-opacity:1;border-color:rgb(165 180 252 / var(--tw-border-opacity, 1))}.border-indigo-400\/30{border-color:rgb(129 140 248 / 0.3)}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-white\/15{border-color:rgb(255 255 255 / 0.15)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-700\/80{border-color:rgb(51 65 85 / 0.8)}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199 / var(--tw-bg-opacity, 1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-indigo-100{--tw-bg-opacity:1;background-color:rgb(224 231 255 / var(--tw-bg-opacity, 1))}.bg-indigo-50{--tw-bg-opacity:1;background-color:rgb(238 242 255 / var(--tw-bg-opacity, 1))}.bg-indigo-500\/20{background-color:rgb(99 102 241 / 0.2)}.bg-indigo-600{--tw-bg-opacity:1;background-color:rgb(79 70 229 / var(--tw-bg-opacity, 1))}.bg-rose-500{--tw-bg-opacity:1;background-color:rgb(244 63 94 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-100\/80{background-color:rgb(241 245 249 / 0.8)}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-slate-700{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.bg-slate-800\/90{background-color:rgb(30 41 59 / 0.9)}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-slate-900{--tw-gradient-from:#0f172a var(--tw-gradient-from-position);--tw-gradient-to:rgb(15 23 42 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-slate-800{--tw-gradient-to:rgb(30 41 59 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #1e293b var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-indigo-950{--tw-gradient-to:#1e1b4b var(--tw-gradient-to-position)}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-1{padding:0.25rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-7{padding-left:1.75rem;padding-right:1.75rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.text-center{text-align:center}.text-base{font-size:1rem;line-height:1.5rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-\[11px\]{font-size:11px}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.leading-relaxed{line-height:1.625}.tracking-tight{letter-spacing:-0.025em}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-indigo-200{--tw-text-opacity:1;color:rgb(199 210 254 / var(--tw-text-opacity, 1))}.text-indigo-300{--tw-text-opacity:1;color:rgb(165 180 252 / var(--tw-text-opacity, 1))}.text-indigo-600{--tw-text-opacity:1;color:rgb(79 70 229 / var(--tw-text-opacity, 1))}.text-indigo-700{--tw-text-opacity:1;color:rgb(67 56 202 / var(--tw-text-opacity, 1))}.text-indigo-800{--tw-text-opacity:1;color:rgb(55 48 163 / var(--tw-text-opacity, 1))}.text-sky-300{--tw-text-opacity:1;color:rgb(125 211 252 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-sky-100{--tw-text-opacity:1;color:rgb(224 242 254 / var(--tw-text-opacity, 1))}.text-slate-100{--tw-text-opacity:1;color:rgb(241 245 249 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.opacity-0{opacity:0}.opacity-90{opacity:0.9}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-indigo-600\/20{--tw-shadow-color:rgb(79 70 229 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.hover\:bg-indigo-700:hover{--tw-bg-opacity:1;background-color:rgb(67 56 202 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-100:hover{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.hover\:bg-white\/20:hover{background-color:rgb(255 255 255 / 0.2)}.hover\:bg-indigo-600:hover{--tw-bg-opacity:1;background-color:rgb(79 70 229 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.active\:cursor-grabbing:active{cursor:grabbing}.active\:bg-indigo-800:active{--tw-bg-opacity:1;background-color:rgb(55 48 163 / var(--tw-bg-opacity, 1))}.active\:bg-slate-200:active{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.active\:bg-white\/25:active{background-color:rgb(255 255 255 / 0.25)}.group:hover .group-hover\:text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:mx-6{margin-left:1.5rem;margin-right:1.5rem}.sm\:w-auto{width:auto}.sm\:flex-row{flex-direction:row}.sm\:gap-4{gap:1rem}.sm\:p-4{padding:1rem}.sm\:p-6{padding:1.5rem}.sm\:p-7{padding:1.75rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-\[13px\]{font-size:13px}}@media (min-width: 768px){.md\:flex-row{flex-direction:row}.md\:items-center{align-items:center}.md\:justify-between{justify-content:space-between}.md\:self-center{align-self:center}.md\:text-3xl{font-size:1.875rem;line-height:2.25rem}}@media (min-width: 1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}</style></head>
+<body class="p-3 sm:p-6 antialiased">
+
+  <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+    
+    <!-- Encabezado de la actividad -->
+    <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white p-5 sm:p-7">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-xs font-semibold mb-2">
+            <span>🤖 Robótica &amp; Electrónica</span>
+            <span>•</span>
+            <span>ESP32 + Puente H L298N</span>
+          </div>
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
+            Ordena el Código del Auto Bluetooth (ESP32 + L298N)
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base mt-1.5 max-w-3xl">
+            Arrastra los bloques de código desde la columna izquierda hacia la derecha y ordénalos secuencialmente para construir el programa funcional sin monitor serial. También puedes usar las flechas o tocar un bloque para moverlo.
+          </p>
+        </div>
+
+        <!-- Botón discreto para copiar el código HTML completo para Google Sites -->
+        <div class="shrink-0 self-start md:self-center">
+          <button id="btn-copy-embed" type="button" title="Copia todo el código HTML para pegarlo en Google Sites (Insertar &gt; Insertar código)" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 text-slate-200 text-xs font-medium border border-white/15 transition cursor-pointer">
+            <svg class="w-4 h-4 text-sky-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            <span id="copy-label">Copiar HTML para Google Sites</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Barra de estado / Progreso -->
+    <div class="bg-slate-50 border-b border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-2 text-slate-600">
+        <span class="font-semibold text-slate-800">Progreso:</span>
+        <span id="progress-text" class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-semibold">0 / 12 bloques colocados</span>
+      </div>
+      <div class="text-xs text-slate-500 flex items-center gap-4">
+        <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span> Correcto</span>
+        <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-rose-500 inline-block"></span> Posición incorrecta</span>
+      </div>
+    </div>
+
+    <!-- Área principal de 2 columnas -->
+    <main class="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- COLUMNA IZQUIERDA: Bloques desordenados -->
+      <section class="flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">1</span>
+            Bloques de código desordenados
+          </h2>
+          <span id="left-count" class="text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">12 disponibles</span>
+        </div>
+
+        <div id="source-zone" class="drop-zone flex-1 bg-slate-100/80 border-2 border-dashed border-slate-300 rounded-xl p-3 sm:p-4 space-y-3"><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="8"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>void moverAdelante() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+}</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="10"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>void girarIzquierda() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+}</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="1"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>#include "BluetoothSerial.h"
+BluetoothSerial SerialBT;</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="5"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>  parar();
+}</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="6"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>void loop() {
+  if (SerialBT.available()) {
+    char comando = SerialBT.read();</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="11"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>void girarDerecha() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+}</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="4"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="3"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>void setup() {
+  SerialBT.begin("ESP32Auto");</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="9"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>void moverAtras() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+}</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="12"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>void parar() {
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="7"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>    switch (comando) {
+      case 'F': moverAdelante(); break;
+      case 'B': moverAtras(); break;
+      case 'L': girarIzquierda(); break;
+      case 'R': girarDerecha(); break;
+      case 'S': parar(); break;
+      default: parar(); break;
+    }
+  }
+}</code></pre></div><div class="code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden" draggable="true" data-id="2"><div class="bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs"><div class="flex items-center gap-2 text-slate-400">
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      </div><div class="flex items-center gap-1">
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">Mover →</button>
+      </div></div><pre class="code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100"><code>// Pines conectados al L298N
+const int IN1 = 12;
+const int IN2 = 14;
+const int IN3 = 27;
+const int IN4 = 26;
+const int ENA = 13;
+const int ENB = 25;</code></pre></div></div>
+      </section>
+
+      <!-- COLUMNA DERECHA: Código ordenado por el estudiante -->
+      <section class="flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">2</span>
+            Tu código ordenado
+          </h2>
+          <span id="right-count" class="text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">0 / 12 pasos</span>
+        </div>
+
+        <div id="target-zone" class="drop-zone flex-1 bg-slate-50 border-2 border-dashed border-indigo-300 rounded-xl p-3 sm:p-4 space-y-3 relative">
+          <!-- Placeholder cuando la zona derecha está vacía -->
+          <div id="empty-placeholder" class="h-full min-h-[380px] flex flex-col items-center justify-center text-center p-6 text-slate-400 pointer-events-none">
+            <svg class="w-12 h-12 mb-3 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+            </svg>
+            <p class="font-medium text-slate-500">Arrastra los bloques aquí para armar el programa</p>
+            <p class="text-xs mt-1">Comienza con la librería Bluetooth y la definición de pines del L298N</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Panel de retroalimentación (oculto hasta comprobar) -->
+    <div id="feedback-box" class="hidden mx-4 sm:mx-6 mb-4 p-4 rounded-xl border text-sm sm:text-base transition-all">
+      <div class="flex items-start gap-3">
+        <div id="feedback-icon" class="shrink-0 mt-0.5"></div>
+        <div>
+          <h3 id="feedback-title" class="font-bold"></h3>
+          <p id="feedback-message" class="mt-0.5 text-sm opacity-90"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie de página con botones de acción -->
+    <footer class="bg-slate-50 border-t border-slate-200 p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+      <button id="btn-check" type="button" class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-base shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 transition cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Comprobar orden
+      </button>
+
+      <button id="btn-reset" type="button" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white hover:bg-slate-100 active:bg-slate-200 text-slate-700 font-semibold text-base border border-slate-300 shadow-sm flex items-center justify-center gap-2 transition cursor-pointer">
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Reiniciar / Mezclar
+      </button>
+    </footer>
+
+  </div>
+
+  <!-- Toast flotante para notificaciones rápidas (ej. Copiado) -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl text-sm font-medium flex items-center gap-2 opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+    <span class="text-emerald-400">✓</span>
+    <span id="toast-msg">Código HTML copiado al portapapeles</span>
+  </div>
+
+  <script>
+    /**
+     * Definición exacta de los 12 bloques lógicos del programa ESP32 + L298N
+     * (Sin líneas de monitor serial, en el orden correcto por ID 1..12)
+     */
+    const CODE_BLOCKS = [
+      {
+        id: 1,
+        code: `#include "BluetoothSerial.h"\nBluetoothSerial SerialBT;`
+      },
+      {
+        id: 2,
+        code: `// Pines conectados al L298N\nconst int IN1 = 12;\nconst int IN2 = 14;\nconst int IN3 = 27;\nconst int IN4 = 26;\nconst int ENA = 13;\nconst int ENB = 25;`
+      },
+      {
+        id: 3,
+        code: `void setup() {\n  SerialBT.begin("ESP32Auto");`
+      },
+      {
+        id: 4,
+        code: `  pinMode(IN1, OUTPUT);\n  pinMode(IN2, OUTPUT);\n  pinMode(IN3, OUTPUT);\n  pinMode(IN4, OUTPUT);\n  pinMode(ENA, OUTPUT);\n  pinMode(ENB, OUTPUT);`
+      },
+      {
+        id: 5,
+        code: `  parar();\n}`
+      },
+      {
+        id: 6,
+        code: `void loop() {\n  if (SerialBT.available()) {\n    char comando = SerialBT.read();`
+      },
+      {
+        id: 7,
+        code: `    switch (comando) {\n      case 'F': moverAdelante(); break;\n      case 'B': moverAtras(); break;\n      case 'L': girarIzquierda(); break;\n      case 'R': girarDerecha(); break;\n      case 'S': parar(); break;\n      default: parar(); break;\n    }\n  }\n}`
+      },
+      {
+        id: 8,
+        code: `void moverAdelante() {\n  digitalWrite(IN1, HIGH);\n  digitalWrite(IN2, LOW);\n  digitalWrite(IN3, HIGH);\n  digitalWrite(IN4, LOW);\n  analogWrite(ENA, 150);\n  analogWrite(ENB, 150);\n}`
+      },
+      {
+        id: 9,
+        code: `void moverAtras() {\n  digitalWrite(IN1, LOW);\n  digitalWrite(IN2, HIGH);\n  digitalWrite(IN3, LOW);\n  digitalWrite(IN4, HIGH);\n  analogWrite(ENA, 150);\n  analogWrite(ENB, 150);\n}`
+      },
+      {
+        id: 10,
+        code: `void girarIzquierda() {\n  digitalWrite(IN1, HIGH);\n  digitalWrite(IN2, LOW);\n  digitalWrite(IN3, LOW);\n  digitalWrite(IN4, HIGH);\n  analogWrite(ENA, 150);\n  analogWrite(ENB, 150);\n}`
+      },
+      {
+        id: 11,
+        code: `void girarDerecha() {\n  digitalWrite(IN1, LOW);\n  digitalWrite(IN2, HIGH);\n  digitalWrite(IN3, HIGH);\n  digitalWrite(IN4, LOW);\n  analogWrite(ENA, 150);\n  analogWrite(ENB, 150);\n}`
+      },
+      {
+        id: 12,
+        code: `void parar() {\n  analogWrite(ENA, 0);\n  analogWrite(ENB, 0);\n  digitalWrite(IN1, LOW);\n  digitalWrite(IN2, LOW);\n  digitalWrite(IN3, LOW);\n  digitalWrite(IN4, LOW);\n}`
+      }
+    ];
+
+    // Referencias al DOM
+    const sourceZone = document.getElementById('source-zone');
+    const targetZone = document.getElementById('target-zone');
+    const emptyPlaceholder = document.getElementById('empty-placeholder');
+    const progressText = document.getElementById('progress-text');
+    const leftCount = document.getElementById('left-count');
+    const rightCount = document.getElementById('right-count');
+    const feedbackBox = document.getElementById('feedback-box');
+    const feedbackIcon = document.getElementById('feedback-icon');
+    const feedbackTitle = document.getElementById('feedback-title');
+    const feedbackMessage = document.getElementById('feedback-message');
+    const btnCheck = document.getElementById('btn-check');
+    const btnReset = document.getElementById('btn-reset');
+    const btnCopyEmbed = document.getElementById('btn-copy-embed');
+
+    let draggedElement = null;
+
+    /**
+     * Mezcla un arreglo usando el algoritmo Fisher-Yates asegurando que no quede ya ordenado
+     */
+    function shuffleArray(array) {
+      const arr = [...array];
+      do {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      } while (arr.every((item, idx) => item.id === idx + 1));
+      return arr;
+    }
+
+    /**
+     * Crea el elemento DOM de un bloque de código con soporte Drag & Drop y controles accesibles
+     */
+    function createBlockElement(block) {
+      const card = document.createElement('div');
+      card.className = 'code-block group relative bg-slate-900 text-slate-100 rounded-xl border-2 border-slate-700 shadow-sm cursor-grab active:cursor-grabbing overflow-hidden';
+      card.setAttribute('draggable', 'true');
+      card.dataset.id = block.id;
+
+      // Barra superior del bloque con indicador de arrastre, número de paso (en derecha) y botones de accesibilidad
+      const header = document.createElement('div');
+      header.className = 'bg-slate-800/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-700/80 text-xs';
+
+      const leftInfo = document.createElement('div');
+      leftInfo.className = 'flex items-center gap-2 text-slate-400';
+      leftInfo.innerHTML = `
+        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+        <span class="step-badge hidden px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[11px]">Paso #1</span>
+        <span class="status-tag hidden px-2 py-0.5 rounded font-bold text-[11px]"></span>
+      `;
+
+      // Controles táctiles / de teclado para mover sin arrastrar (subir, bajar, pasar de columna)
+      const controls = document.createElement('div');
+      controls.className = 'flex items-center gap-1';
+      controls.innerHTML = `
+        <button type="button" data-action="up" title="Subir bloque" class="move-up-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Subir bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button type="button" data-action="down" title="Bajar bloque" class="move-down-btn hidden p-1 rounded hover:bg-slate-700 text-slate-300 transition cursor-pointer" aria-label="Bajar bloque">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button type="button" data-action="transfer" title="Mover a la otra columna" class="transfer-btn px-2 py-0.5 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition cursor-pointer">
+          Mover →
+        </button>
+      `;
+
+      header.appendChild(leftInfo);
+      header.appendChild(controls);
+
+      // Contenido del código con fuente monoespaciada y preservación exacta de indentación
+      const pre = document.createElement('pre');
+      pre.className = 'code-font text-xs sm:text-[13px] leading-relaxed p-3 overflow-x-auto text-sky-100';
+      const codeEl = document.createElement('code');
+      codeEl.textContent = block.code;
+      pre.appendChild(codeEl);
+
+      card.appendChild(header);
+      card.appendChild(pre);
+
+      // Eventos Drag & Drop nativos (Escritorio)
+      card.addEventListener('dragstart', (e) => {
+        draggedElement = card;
+        card.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', block.id);
+        clearValidationStyles();
+      });
+
+      card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+        draggedElement = null;
+        sourceZone.classList.remove('drag-over');
+        targetZone.classList.remove('drag-over');
+        updateUIState();
+      });
+
+      // Eventos de botones rápidos (Táctil / Accesibilidad)
+      controls.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        e.stopPropagation();
+        clearValidationStyles();
+
+        const action = btn.dataset.action;
+        if (action === 'transfer') {
+          if (card.parentElement === sourceZone) {
+            targetZone.appendChild(card);
+          } else {
+            sourceZone.appendChild(card);
+          }
+        } else if (action === 'up' && card.previousElementSibling && card.previousElementSibling !== emptyPlaceholder) {
+          targetZone.insertBefore(card, card.previousElementSibling);
+        } else if (action === 'down' && card.nextElementSibling) {
+          targetZone.insertBefore(card.nextElementSibling, card);
+        }
+        updateUIState();
+      });
+
+      return card;
+    }
+
+    /**
+     * Calcula después de qué elemento insertar durante el arrastre vertical
+     */
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.code-block:not(.dragging)')];
+
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+    }
+
+    /**
+     * Configura una zona de destino para recibir bloques arrastrados
+     */
+    function setupDropZone(zone) {
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        zone.classList.add('drag-over');
+
+        if (!draggedElement) return;
+        const afterElement = getDragAfterElement(zone, e.clientY);
+        if (afterElement == null) {
+          zone.appendChild(draggedElement);
+        } else {
+          zone.insertBefore(draggedElement, afterElement);
+        }
+        updatePlaceholderVisibility();
+      });
+
+      zone.addEventListener('dragleave', (e) => {
+        if (!zone.contains(e.relatedTarget)) {
+          zone.classList.remove('drag-over');
+        }
+      });
+
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        updateUIState();
+      });
+    }
+
+    /**
+     * Muestra u oculta el mensaje guía de la columna derecha
+     */
+    function updatePlaceholderVisibility() {
+      const rightBlocks = targetZone.querySelectorAll('.code-block');
+      if (rightBlocks.length === 0) {
+        emptyPlaceholder.classList.remove('hidden');
+      } else {
+        emptyPlaceholder.classList.add('hidden');
+      }
+    }
+
+    /**
+     * Actualiza contadores, insignias de paso (#1, #2...) y etiquetas de botones
+     */
+    function updateUIState() {
+      const leftBlocks = [...sourceZone.querySelectorAll('.code-block')];
+      const rightBlocks = [...targetZone.querySelectorAll('.code-block')];
+
+      updatePlaceholderVisibility();
+
+      // Actualizar contadores
+      leftCount.textContent = `${leftBlocks.length} disponibles`;
+      rightCount.textContent = `${rightBlocks.length} / ${CODE_BLOCKS.length} pasos`;
+      progressText.textContent = `${rightBlocks.length} / ${CODE_BLOCKS.length} bloques colocados`;
+
+      // Configurar apariencia de bloques en la columna izquierda
+      leftBlocks.forEach((card) => {
+        const badge = card.querySelector('.step-badge');
+        const transferBtn = card.querySelector('.transfer-btn');
+        const upBtn = card.querySelector('.move-up-btn');
+        const downBtn = card.querySelector('.move-down-btn');
+
+        badge.classList.add('hidden');
+        upBtn.classList.add('hidden');
+        downBtn.classList.add('hidden');
+        transferBtn.textContent = 'Mover →';
+      });
+
+      // Configurar apariencia y numeración secuencial en la columna derecha
+      rightBlocks.forEach((card, index) => {
+        const badge = card.querySelector('.step-badge');
+        const transferBtn = card.querySelector('.transfer-btn');
+        const upBtn = card.querySelector('.move-up-btn');
+        const downBtn = card.querySelector('.move-down-btn');
+
+        badge.textContent = `Paso #${index + 1}`;
+        badge.classList.remove('hidden');
+        upBtn.classList.remove('hidden');
+        downBtn.classList.remove('hidden');
+        transferBtn.textContent = '← Quitar';
+      });
+    }
+
+    /**
+     * Limpia los colores de validación (verde/rojo) cuando el usuario vuelve a editar
+     */
+    function clearValidationStyles() {
+      feedbackBox.classList.add('hidden');
+      document.querySelectorAll('.code-block').forEach((card) => {
+        card.classList.remove('border-emerald-500', 'bg-emerald-950/90', 'border-rose-500', 'bg-rose-950/90');
+        card.classList.add('border-slate-700', 'bg-slate-900');
+        const tag = card.querySelector('.status-tag');
+        tag.classList.add('hidden');
+        tag.textContent = '';
+      });
+    }
+
+    /**
+     * Comprueba el orden de los bloques colocados en la columna derecha
+     */
+    function checkOrder() {
+      const rightBlocks = [...targetZone.querySelectorAll('.code-block')];
+      const total = CODE_BLOCKS.length;
+
+      if (rightBlocks.length === 0) {
+        showFeedback(
+          'warning',
+          'Aún no has colocado ningún bloque',
+          'Arrastra o mueve los bloques desde la columna izquierda hacia "Tu código ordenado" para comenzar.'
+        );
+        return;
+      }
+
+      let correctCount = 0;
+
+      rightBlocks.forEach((card, index) => {
+        const blockId = parseInt(card.dataset.id, 10);
+        const expectedId = index + 1;
+        const tag = card.querySelector('.status-tag');
+
+        card.classList.remove('border-slate-700', 'bg-slate-900', 'border-emerald-500', 'bg-emerald-950/90', 'border-rose-500', 'bg-rose-950/90');
+        tag.classList.remove('hidden', 'bg-emerald-500/20', 'text-emerald-300', 'bg-rose-500/20', 'text-rose-300');
+
+        if (blockId === expectedId) {
+          correctCount++;
+          card.classList.add('border-emerald-500', 'bg-emerald-950/90');
+          tag.classList.add('bg-emerald-500/20', 'text-emerald-300');
+          tag.textContent = '✓ Correcto';
+        } else {
+          card.classList.add('border-rose-500', 'bg-rose-950/90');
+          tag.classList.add('bg-rose-500/20', 'text-rose-300');
+          tag.textContent = '✕ Revisar';
+        }
+      });
+
+      if (rightBlocks.length === total && correctCount === total) {
+        showFeedback(
+          'success',
+          '¡Excelente trabajo! El código está 100% ordenado y listo para cargar al ESP32.',
+          'Has estructurado correctamente las librerías, la configuración de pines del puente H L298N, el bucle de lectura Bluetooth y todas las funciones de movimiento.'
+        );
+      } else if (rightBlocks.length < total) {
+        const faltantes = total - rightBlocks.length;
+        showFeedback(
+          'error',
+          `Faltan ${faltantes} bloque${faltantes > 1 ? 's' : ''} por colocar (${correctCount} de ${rightBlocks.length} en posición correcta).`,
+          'Coloca todos los bloques de la izquierda en la columna derecha y corrige los que aparecen marcados en rojo.'
+        );
+      } else {
+        showFeedback(
+          'error',
+          `Tienes ${correctCount} de ${total} bloques en la posición correcta.`,
+          'Revisa los bloques marcados en rojo: recuerda el orden lógico de Arduino/ESP32 (Librerías → Pines → setup() → loop() → Funciones de movimiento).'
+        );
+      }
+    }
+
+    /**
+     * Muestra el cuadro de retroalimentación con estilos semánticos
+     */
+    function showFeedback(type, title, message) {
+      feedbackBox.classList.remove(
+        'hidden',
+        'bg-emerald-50', 'border-emerald-300', 'text-emerald-900',
+        'bg-rose-50', 'border-rose-300', 'text-rose-900',
+        'bg-amber-50', 'border-amber-300', 'text-amber-900'
+      );
+
+      if (type === 'success') {
+        feedbackBox.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-900');
+        feedbackIcon.innerHTML = `<svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+      } else if (type === 'error') {
+        feedbackBox.classList.add('bg-rose-50', 'border-rose-300', 'text-rose-900');
+        feedbackIcon.innerHTML = `<svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+      } else {
+        feedbackBox.classList.add('bg-amber-50', 'border-amber-300', 'text-amber-900');
+        feedbackIcon.innerHTML = `<svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+      }
+
+      feedbackTitle.textContent = title;
+      feedbackMessage.textContent = message;
+      feedbackBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /**
+     * Inicializa o reinicia el tablero mezclando todos los bloques en la izquierda
+     */
+    function initBoard() {
+      sourceZone.innerHTML = '';
+      // Conservar placeholder en targetZone y limpiar bloques
+      [...targetZone.querySelectorAll('.code-block')].forEach(el => el.remove());
+      feedbackBox.classList.add('hidden');
+
+      const shuffled = shuffleArray(CODE_BLOCKS);
+      shuffled.forEach((block) => {
+        sourceZone.appendChild(createBlockElement(block));
+      });
+
+      updateUIState();
+    }
+
+    /**
+     * Copia el código fuente HTML completo al portapapeles para pegarlo en Google Sites
+     */
+    function copyFullHTMLForSites() {
+      const fullHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const textArea = document.createElement('textarea');
+      textArea.value = fullHTML;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        const toast = document.getElementById('toast');
+        toast.classList.remove('opacity-0');
+        setTimeout(() => toast.classList.add('opacity-0'), 3000);
+      } catch (err) {
+        console.error('Error al copiar:', err);
+      }
+      document.body.removeChild(textArea);
+    }
+
+    // Asignar eventos principales
+    setupDropZone(sourceZone);
+    setupDropZone(targetZone);
+    btnCheck.addEventListener('click', checkOrder);
+    btnReset.addEventListener('click', initBoard);
+    btnCopyEmbed.addEventListener('click', copyFullHTMLForSites);
+
+    // Iniciar actividad al cargar
+    initBoard();
+  </script>
+
+</body></html>
