@@ -124,9 +124,7 @@ const int IN4 = 26;
 const int ENA = 13;
 const int ENB = 25;`,
 `void setup() {
-  Serial.begin(115200);
   SerialBT.begin("ESP32Auto");  // Nombre del dispositivo Bluetooth
-  Serial.println("Esperando conexión Bluetooth...");
 
   // Inicializa pines como salida
   pinMode(IN1, OUTPUT);
@@ -141,8 +139,6 @@ const int ENB = 25;`,
 `void loop() {
   if (SerialBT.available()) {
     char comando = SerialBT.read();
-    Serial.print("Comando recibido: ");
-    Serial.println(comando);
 
     switch (comando) {
       case 'F': moverAdelante(); break;
